@@ -1,0 +1,92 @@
+\documentclass[12pt]{report}
+% --- PACKAGES ---
+\usepackage[a4paper, tmargin=2.5cm, lmargin=3cm, rmargin=3cm, bmargin=2.5cm]{geometry}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,      
+    urlcolor=blue,
+    citecolor=black,
+}
+
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption} % trong preamble
+\usepackage{indentfirst}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+\usepackage{CJKutf8}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{lmodern}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath,amssymb} 
+\usepackage{placeins}
+\usepackage{setspace}
+\usepackage{adjustbox}
+% \usepackage{sectsty}
+% \sectionfont{\fontsize{16pt}{20pt}\selectfont}
+
+\setstretch{1.15}
+\usetikzlibrary{positioning, arrows.meta, calc}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+
+\fancyfoot[L]{\footnotesize Chess Game Video Analysis}
+\fancyfoot[R]{\thepage}
+
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headrulewidth}{0pt}
+
+\renewcommand{\thesection}{\Roman{section}} 
+\makeatletter
+\renewcommand{\@seccntformat}[1]{\csname the#1\endcsname.\quad} % Adds a dot after the numeral (e.g., I. )
+\makeatother
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\pagenumbering{arabic}
+
+\begin{titlepage}
+    \thispagestyle{empty}
+    \centering
+    \vspace{2cm}
+    {\large \textbf{LA ROCHELLE UNIVERSITÉ}}\\[0.5cm]
+    {LICENSE 3 INFORMATIQUE}\\[2cm]
+
+    \includegraphics[width=0.3\linewidth]{../figures/La_Rochelle_Universite.png}\\[2cm]
+
+    {\Huge \textbf{Modélisation de bases de données}}\\[1cm]
+    {\Huge \textbf{Project Report: \\[0.5cm] Designing Postgres Database for Genealogy dataset}}\\[2cm]
+
+    {\fontsize{16pt}{22pt}\selectfont
+    \raggedright{}
+    \begin{tabular}{@{} l l l @{}}
+        \textbf{Professors} & BOUWMANS Thierry \\
+        \textbf{Members}  & TRAN Minh Duong \\
+                          & PHAM Ngan Ha \\
+                          & NGUYEN Hoang Nhat \\
+    \end{tabular}
+    }
+
+\end{titlepage}
+
+\setlength{\parindent}{0em}
+
+{\centering
+\section*{Abstract}
+Hello.
+}
+
+\end{CJK*}
+\end{document}
