@@ -1,119 +1,110 @@
-## 1. Normalization:
+## 1. Normalization
 
-### a) Champs initials
+### a) Initial fields
 
-1. Identifiant d’acte
-2. Type d’acte
-3. Nom personne A
-4. Prénom personne A
-5. Prénom père personne A
-6. Nom mère personne A
-7. Prénom mère personne A
-8. Nom personne B
-9. Prénom personne B
-10. Prénom père personne B
-11. Nom mère personne B
-12. Prénom mère personne B
-13. Commune
-14. Département
+1. Act ID
+2. Act Type
+3. Person A's last name
+4. Person A's first name
+5. First name of A's father
+6. Last name of A's mother
+7. First name of A's mother
+8. Person B's last name
+9. Person B's first name
+10. First name of B's father
+11. Last name of B's mother
+12. First name of B's mother
+13. Town (Commune)
+14. Department
 15. Date
-16. Num Vue
+16. View number
 
-### b) Normalisation
+### b) Normalization Process
 
-- 1NF:
-  - Tous les valeurs sont déjà atomiques
-  - Chaque enregistrement est identifié par un identifiant d'acte unique
+- **1NF**:
+  - All values are atomic (each cell contains one piece of data).
+  - Each record is uniquely identified by an Act ID. 
+  - => Result: 1NF achieved.
 
-  => 1NF
-
-- 2NF:
-  - **Problème** : Des répétitions pour les parents, les communes et les départements
-  - **Solution** : Séparer les entités pour que chaque attribut non-clé dépend de la totalité de la clé primaire:
+- **2NF**:
+  - **Problem**: Repetition of data for parents, towns, and departments leads to redundancy.
+  - **Solution**: Separate entities so that every non-key attribute depends on the whole primary key.
+  - **Functional Dependencies**:
 
     ```
-    Identifiant d’acte → (Type d’acte, Date, Num Vue, Commune, Personne A, Personne B)
+    - Act_ID → (Type, Date, View_Num, Commune_ID, Person_A_ID, Person_B_ID)
 
-    Identifiant de personne → (Nom, Prénom, Père_ID, Mère_ID)
+    - Person_ID → (Last_Name, First_Name, Father_ID, Mother_ID)
 
-    Commune → Département
+    - Commune_ID → (Name, Dept_Code)
     ```
 
-  => 2NF
+  - => Result: 2NF achieved.
 
-- 3NF:
-  - **Problème** :
-    - le **département** dépendait de la commune, qui elle-même dépendait de l'acte (Dépendance Transitive).
-    - les noms des parents dépendaient de la personne A/B
-  - **Solution** :
-    - Extraire **Departement** dans une table propre
-    - Créer les clés étrangères (pere_id, mere_id) pointant vers la table **Personne**
+- **3NF**:
+  - **Problem**:
+    - Transitive Dependency: The Department depended on the Town, which depended on the Act.
+    - Parental names depended on the person.
+  - **Solution**:
+    - Extracted **Department** into a standalone table to enforce valid codes (44, 49, 79, 85).
+    - Established foreign keys (`father_id`, `mother_id`) within the **Person** table to handle lineage without repeating names.
+  - => Result: 3NF achieved.
 
-    => 3NF
-
-### c) Dépendances fonctionnels finals:
+### c) Final Functional Dependencies:
 
 ```
-Identifiant d’acte → {Type d’acte, Date, Num Vue, Commune, Personne A, Personne B}
+Act_ID → (Act_Type, Date, View_Num, Commune_ID, Person_A_ID, Person_B_ID)
 
-Personne_ID → {Nom, Prénom, Père_ID, Mère_ID}
+Person_ID → (Last_Name, First_Name, Father_ID, Mother_ID)
 
-Commune_ID → {Nom Commune, Code Département}
+Commune_ID → (Commune_Name, Dept_Code)
 
-Père_ID → {Prénom Père}
-
-Mère_ID → {Nom Mère, Prénom Mère}
+Dept_Code → (Valid_Codes: 44, 49, 79, 85)
 ```
 
-## Schéma
+## 2. Relational Schema
 
-![alt text](db_schema.png)
+![Database Schema](db_schema.png)
 
-## Création des tables en Postgresql
+## 3. PostgreSQL Table Creation
 
 ```sql
-CREATE TABLE IF NOT EXISTS "departement" (
-	"code" varchar(2) PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS "department" (
+  "code" varchar(2) PRIMARY KEY
+  CONSTRAINT "chk_valid_dept" CHECK ("code" IN ('44', '49', '79', '85'))
 );
 
-CREATE TABLE IF NOT EXISTS "commune" (
-	"id" integer PRIMARY KEY,
-	"nom" varchar(255) NOT NULL,
-	"dept_code" varchar(255) NOT NULL,
+CREATE TABLE IF NOT EXISTS "town" (
+  "id" SERIAL PRIMARY KEY,
+  "name" varchar(255) NOT NULL,
+  "dept_code" varchar(2) NOT NULL,
+  FOREIGN KEY ("dept_code") REFERENCES "department"("code")
 );
 
-CREATE TABLE IF NOT EXISTS "personne" (
-	"id" integer PRIMARY KEY,
-	"nom" varchar(255) NOT NULL,
-	"prenom" varchar(255) NOT NULL,
-	"pere_id" integer,
-	"mere_id" integer,
+CREATE TABLE IF NOT EXISTS "person" (
+  "id" SERIAL PRIMARY KEY,
+  "last_name" varchar(255) NOT NULL,
+  "first_name" varchar(255) NOT NULL,
+  "father_id" integer REFERENCES "person"("id"),
+  "mother_id" integer REFERENCES "person"("id")
 );
 
-CREATE TABLE IF NOT EXISTS "acte" (
-	"id" integer PRIMARY KEY,
-	"type_acte" varchar(50) NOT NULL,
-	"personne_a_id" integer NOT NULL,
-	"personne_b_id" integer NOT NULL,
-	"commune_id" integer NOT NULL,
-	"date_acte" date NOT NULL,
-	"num_vue" integer NOT NULL,
-
-    CONSTRAINT "chk_type_acte" CHECK ("type_acte" IN (
-        'Certificat de mariage', 'Contrat de mariage', 'Divorce',
-        'Mariage', 'Promesse de mariage - fiançailles',
-        'Publication de mariage', 'Rectification de mariage'
+CREATE TABLE IF NOT EXISTS "act" (
+  "id" integer PRIMARY KEY,
+  "act_type" varchar(50) NOT NULL,
+  "a_id" integer NOT NULL REFERENCES "person"("id"),
+  "b_id" integer NOT NULL REFERENCES "person"("id"),
+  "town_id" integer NOT NULL REFERENCES "town"("id"),
+  "act_date" date NOT NULL,
+  "view_num" integer,
+  CONSTRAINT "chk_act_type" CHECK ("act_type" IN (
+        'Marriage certificate',
+        'Marriage contract',
+        'Divorce',
+        'Marriage',
+        'Marriage promise - engagement',
+        'Marriage publication',
+        'Marriage rectification'
     ))
 );
-
-
-ALTER TABLE "commune" ADD CONSTRAINT "commune_fk2" FOREIGN KEY ("dept_code") REFERENCES "departement"("code");
-ALTER TABLE "personne" ADD CONSTRAINT "personne_fk3" FOREIGN KEY ("pere_id") REFERENCES "personne"("id");
-
-ALTER TABLE "personne" ADD CONSTRAINT "personne_fk4" FOREIGN KEY ("mere_id") REFERENCES "personne"("id");
-ALTER TABLE "acte" ADD CONSTRAINT "acte_fk2" FOREIGN KEY ("personne_a_id") REFERENCES "personne"("id");
-
-ALTER TABLE "acte" ADD CONSTRAINT "acte_fk3" FOREIGN KEY ("personne_b_id") REFERENCES "personne"("id");
-
-ALTER TABLE "acte" ADD CONSTRAINT "acte_fk4" FOREIGN KEY ("commune_id") REFERENCES "commune"("id");
 ```
