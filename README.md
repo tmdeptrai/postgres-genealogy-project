@@ -25,3 +25,7 @@ To compile LaTeX:
 #Inside ./report
 pdflatex main.tex
 ```
+
+Alternative: Docker (if you have troubles with dependencies hell :C )
+
+see [Latex Compile Manual](LATEX_COMPILE.md)

@@ -32,8 +32,9 @@
 \usepackage{placeins}
 \usepackage{setspace}
 \usepackage{adjustbox}
-% \usepackage{sectsty}
-% \sectionfont{\fontsize{16pt}{20pt}\selectfont}
+\usepackage{sectsty}
+\sectionfont{\color{red}\fontsize{16pt}{20pt}\selectfont}
+\subsectionfont{\color{blue}\fontsize{14pt}{16pt}\selectfont}
 
 \setstretch{1.15}
 \usetikzlibrary{positioning, arrows.meta, calc}
@@ -42,7 +43,8 @@
 \pagestyle{fancy}
 \fancyhf{}
 
-\fancyfoot[L]{\footnotesize Chess Game Video Analysis}
+\fancyfoot[L]{\footnotesize Designing Postgres Database for
+Genealogy dataset}
 \fancyfoot[R]{\thepage}
 
 \renewcommand{\footrulewidth}{0pt}
@@ -72,7 +74,7 @@
     {\fontsize{16pt}{22pt}\selectfont
     \raggedright{}
     \begin{tabular}{@{} l l l @{}}
-        \textbf{Professors} & BOUWMANS Thierry \\
+        \textbf{Professor(s)} & BOUWMANS Thierry \\
         \textbf{Members}  & TRAN Minh Duong \\
                           & PHAM Ngan Ha \\
                           & NGUYEN Hoang Nhat \\
@@ -85,8 +87,92 @@
 
 {\centering
 \section*{Abstract}
-Hello.
+This project builds a database to organize and study marriage records from France. We take 5,000 marriage documents and create a PostgreSQL database to store them in an organized way. The goal is to design the database so that it is well-organized, easy to use, and can answer questions about families and dates. This report explains how we organized the data and built the database system.
 }
+
+\setlength{\parindent}{1em}
+
+\section{Introduction}
+
+Old documents and records from France contain important information about families and history. Many of these documents are stored in archives. To study and understand this information, we need to organize it in a database. This project focuses on creating a database system for marriage records from the Vendée region. We show how to take messy information and organize it in a clean, useful way.
+
+\subsection{Dataset Overview}
+
+We use a file called \texttt{mariages\_L3\_5k.csv} which contains 5,000 marriage records. Each record includes information about two people who got married, their parents, and the place and date of marriage. 
+
+The data has these main parts:
+
+\begin{itemize}
+    \item \textbf{Record Information:} Each record has an ID number and a date
+    \item \textbf{Person A Information:} Name of the first person, and names of their mother and father
+    \item \textbf{Person B Information:} Name of the second person, and names of their mother and father
+    \item \textbf{Location Information:} The city (commune) and region (department) where the marriage happened
+\end{itemize}
+
+\subsection{Why This Project Is Important}
+
+When we have many old documents, it is difficult to find information or see patterns. A database makes this easier. Our database has these goals:
+
+\begin{enumerate}
+    \item \textbf{Organization:} Store all the information in one place in a clear way
+    \item \textbf{No Duplicates:} Each person should appear only once in the database, even if they appear in many records
+    \item \textbf{Correct Information:} Make sure that all relationships between people and places are correct
+\end{enumerate}
+
+
+\section{Database Design \& Normalization}
+
+\subsection{Initial Conceptualization}
+TODO Define the initial attributes and necessary primary keys for each, find all functional dependencies
+
+\subsection{Normalization Process}
+TODO Explain how you transition the initial concepts into a normalized relational schema
+
+\subsection{Final Relation Schema}
+TODO Present the final optimized model
+
+Insert the visual export from DBDesigner
+
+Argue your specific design choices
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../figures/La_Rochelle_Universite.png}
+    \caption{Database Relation Schema}
+    \label{fig:schema}
+\end{figure}
+
+\section{Data Extraction \& ETL Process}
+TODO:
+
+Cleaning strategy: French character encoding?
+
+Command Line Tools with cut sort uniq?
+
+Import to Postgres with {\textbackslash}copy
+
+
+\section{Genealogical Queries \& Results}
+\begin{enumerate}
+    \item The number of communes per department
+    \item The number of records in Luçon
+    \item The number of marriage contracts before 1855
+    \item The commune with the highest number of marriage banns
+    \item The date of the first and last records
+\end{enumerate}
+
+Query? DELET FROM ProdDB; xD
+
+\section{Bonus: Scalability \& Noisy Data}
+TODO:
+
+Challenge Overview: Dealing with the 564k register mariages.csv file .
+
+Difficulties Encountered: Description of the "noise" found and how you resolved it.
+
+Performance Comparison: Comparison of query results between the 5k and 564k datasets.
+
+\section{Conclusion}
 
 \end{CJK*}
 \end{document}
