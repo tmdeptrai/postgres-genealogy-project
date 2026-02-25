@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from db import engine
+from utils.db import engine
 
 '''
 We put queries in query.py, run it with uv run python query.py
