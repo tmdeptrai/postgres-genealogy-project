@@ -50,16 +50,6 @@ CSV_COLUMNS = [
 
 VALID_DEPT_CODES = {"44", "49", "79", "85"}
 
-ACT_TYPE_MAP = {
-    "Mariage": "Marriage",
-    "Contrat de mariage": "Marriage contract",
-    "Divorce": "Divorce",
-    "Promesse de mariage": "Marriage promise - engagement",
-    "Publication de mariage": "Marriage publication",
-    "Rectification de mariage": "Marriage rectification",
-    "Certificat de mariage": "Marriage certificate",
-}
-
 
 def _clean(val) -> str | None:
     """
@@ -94,7 +84,7 @@ def _get_or_create_person(
     named 'Jean' with no parent refs will incorrectly collapse into one row.
 
     Returns None without inserting anything if both last and first are None,
-    which represents an unknown person (n/a). This is expected for optional 
+    which represents an unknown person (n/a). This is expected for optional
     parent fields, but would be a data quality issue for person A or B.
     """
     if not last and not first:
@@ -143,14 +133,14 @@ def parse_mariages(
     encoding: str = "utf-8",
 ) -> dict[str, pd.DataFrame]:
     """
-    Parse the civil registry CSV(No header row is expected.) 
+    Parse the civil registry CSV(No header row is expected.)
     into normalized DataFrames.
 
     Reads the raw flat file and splits it into four tables mirroring
-    the target relational schema in ../design/normalisation.pdf. 
-    
+    the target relational schema in ../design/normalisation.pdf.
+
     Entities (persons, towns, departments) are deduplicated in-memory
-    using dict indexes keyed on their natural identifiers; surrogate 
+    using dict indexes keyed on their natural identifiers; surrogate
     integer ids are assigned incrementally.
 
     Rows (acts) are skipped entirely if dept_code is not one of the four
@@ -261,8 +251,7 @@ def parse_mariages(
         )
 
         # ── Act type ────────────────────────────────────────────────────────
-        raw_type = _clean(row["act_type"]) or ""
-        act_type = ACT_TYPE_MAP.get(raw_type, raw_type)
+        act_type = _clean(row["act_type"]) or ""
 
         # ── Date (DD/MM/YYYY) ───────────────────────────────────────────────
         date_raw = _clean(row["act_date"])
