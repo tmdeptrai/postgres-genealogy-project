@@ -23,7 +23,7 @@
 
 - **1NF**:
   - All values are atomic (each cell contains one piece of data).
-  - Each record is uniquely identified by an Act ID. 
+  - Each record is uniquely identified by an Act ID.
   - => Result: 1NF achieved.
 
 - **2NF**:
@@ -98,13 +98,13 @@ CREATE TABLE IF NOT EXISTS "act" (
   "act_date" date NOT NULL,
   "view_num" integer,
   CONSTRAINT "chk_act_type" CHECK ("act_type" IN (
-        'Marriage certificate',
-        'Marriage contract',
+        'Certificat de mariage',
+        'Contrat de mariage',
         'Divorce',
-        'Marriage',
-        'Marriage promise - engagement',
-        'Marriage publication',
-        'Marriage rectification'
+        'Mariage',
+        'Promesse de mariage - fiançailles',
+        'Publication de mariage',
+        'Rectification de mariage'
     ))
 );
 ```
