@@ -220,15 +220,48 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
 
 
     \section{Genealogical Queries \& Results}
-    \begin{enumerate}
-        \item The number of communes per department
-        \item The number of records in Luçon
-        \item The number of marriage contracts before 1855
-        \item The commune with the highest number of marriage banns
-        \item The date of the first and last records
-    \end{enumerate}
+    Here are the SQL queries designed to answer specific genealogical questions based on our database schema.
 
-    Query? DELET FROM ProdDB; xD
+    \subsubsection*{1. The number of communes per department}
+    \begin{verbatim}
+    SELECT dept_code, COUNT(*) AS total_town
+    FROM town
+    GROUP BY dept_code;
+    \end{verbatim}
+
+    \subsubsection*{2. The number of acts in Luçon}
+    \begin{verbatim}
+    SELECT COUNT(*)
+    FROM act
+    JOIN town ON act.town_id = town.id
+    WHERE town.name ~* '^LUÇON$';
+    \end{verbatim}
+
+    \subsubsection*{3. The number of marriage contracts before 1855}
+    \begin{verbatim}
+    SELECT COUNT(*)
+    FROM act
+    WHERE act.act_type = 'Contrat de mariage'
+    AND act.act_date < '1855-01-01';
+    \end{verbatim}
+
+    \subsubsection*{4. The town with the highest number of marriage publications}
+    \begin{verbatim}
+    SELECT town.name, COUNT(*) AS total_publications
+    FROM act
+    JOIN town ON act.town_id = town.id
+    WHERE act.act_type = 'Publication de mariage'
+    GROUP BY town.name
+    ORDER BY total_publications DESC
+    LIMIT 1;
+    \end{verbatim}
+
+    \subsubsection*{5. The date of the first and last records}
+    \begin{verbatim}
+    SELECT MIN(act_date) as first_act, MAX(act_date) as last_act
+    FROM act;
+    \end{verbatim}
+
 
     \section{Bonus: Scalability \& Noisy Data}
     TODO:
