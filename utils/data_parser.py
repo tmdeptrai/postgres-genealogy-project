@@ -128,7 +128,7 @@ def _get_or_create_town(name, dept_code, town_rows, town_index) -> int:
 
 
 def parse_mariages(
-    csv_path: str = "../raw_data/mariages_L3.csv",
+    csv_path: str = "../raw_data/mariages_L3_5k.csv",
     sep: str = ",",
     encoding: str = "utf-8",
 ) -> dict[str, pd.DataFrame]:
