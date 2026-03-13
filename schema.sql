@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS "act" (
 -- QUERY FOR QUESTIONS --
 -- 1. La quantité de communes par département
 -- Number of towns per department
+EXPLAIN ANALYZE
 SELECT dept_code, COUNT(*) AS total_town 
 FROM town
 GROUP BY dept_code;
@@ -68,12 +69,12 @@ AND act.date < '1855-01-01';
 SELECT town.name, COUNT(*) AS total_publications
 FROM act
 JOIN town ON act.town_id = town.id
-WHERE act.act_type = "Publication de mariage"
+WHERE act.act_type = 'Publication de mariage'
 GROUP BY town.name
 ORDER BY total_publications DESC
 LIMIT 1;
 
 -- 5. La date du premier acte et le dernier acte
 -- Date of the first act and last act
-SELECT MIN(date) as first_act, MAX(date) as last_act
+SELECT MIN(act_date) as first_act, MAX(act_date) as last_act
 FROM act;

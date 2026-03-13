@@ -1,6 +1,6 @@
 \documentclass[11pt]{report}
 % --- PACKAGES ---
-\usepackage[a4paper, tmargin=2.5cm, lmargin=2.5cm, rmargin=2.5cm, bmargin=2.5cm]{geometry}
+\usepackage[a4paper, tmargin=2cm, lmargin=2.5cm, rmargin=2.5cm, bmargin=2cm]{geometry}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks=true,
@@ -210,16 +210,60 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
     \end{itemize}
 
     \section{Data Extraction \& ETL Process}
-    TODO:
 
-    Cleaning strategy: French character encoding?
+    To get our data from the messy CSV file into our clean database, we created a two-step process using Python scripts. The first script, \texttt{utils/data\_parser.py}, handles the cleaning and organizing, and the second script, \texttt{main.py}, loads it into the database.
 
-    Command Line Tools with cut sort uniq?
+    \subsection{Extraction}
+    First, we pull all the data from the \texttt{mariages\_L3\_5k.csv} file. We used the pandas library in Python to help with this. An important step was to read everything as text first, so we didn't accidentally change data, like dropping the '0' from a department code like '05'. We also made sure to use UTF-8 encoding, which helps read special French characters correctly.
 
-    Import to Postgres with {\textbackslash}copy
+    \subsection{Transformation}
+    This is where we do most of the cleanup work. Our script goes through the raw data row by row and gets it ready for our normalized tables.
 
+    \subsubsection{Data Cleaning}
+    We made a simple cleaning function that does two things:
+    \begin{itemize}
+        \item It removes any extra spaces from the beginning or end of each piece of data.
+        \item It finds any empty or "n/a" values and marks them as properly missing, so we can handle them consistently.
+    \end{itemize}
+
+    \subsubsection{Finding and Removing Duplicates}
+    To avoid storing the same person or town multiple times, our script keeps track of what it has already seen.
+    \begin{itemize}
+        \item \textbf{Departments and Towns:} It checks for valid department codes and skips any rows with bad data. It makes sure a town is unique by looking at both its name and its department code.
+        \item \textbf{People:} To decide if a person is unique, we look at their full name and also who their parents are. This helps tell apart two people who might have the same name.
+    \end{itemize}
+
+    \subsubsection{Fixing Formats}
+    We also had to fix a few things to match our database design:
+    \begin{itemize}
+        \item \textbf{Dates:} We converted the date from the "DD/MM/YYYY" text format into a real date that the database can understand.
+        \item \textbf{View Number:} We took columns like "48/210" and just kept the first number (48), which is the page number we care about.
+    \end{itemize}
+
+    \subsection{Loading}
+    Instead of manually importing the files, we used a second Python script, \texttt{main.py}, to automatically load our cleaned data into the PostgreSQL database. This script uses a library called SQLAlchemy, which helps Python talk to databases.
+
+    The loading process is done carefully to avoid errors:
+    \begin{enumerate}
+        \item \textbf{Final Check:} Before loading, the script does one last check on our cleaned data tables to make sure all the ID numbers are valid integers and that no essential information is missing.
+        \item \textbf{Order of Operations:} It loads the tables in the correct order: first \texttt{department}, then \texttt{town} (which needs departments to exist), then \texttt{person}, and finally \texttt{act} (which needs towns and people).
+        \item \textbf{Handling People:} The \texttt{person} table was a bit tricky because a person's parents are also in the same table. To solve this, we first insert all people with their parent fields empty. Then, once everyone is in the table, we go back and add the parent-child links.
+        \item \textbf{Batching:} To make it faster, the script inserts the data in large chunks (batches) instead of one row at a time.
+        \item \textbf{Updating Sequences:} After inserting everything with specific IDs, we reset the database's automatic ID counters. This ensures that if we add new data later, we won't have any ID conflicts.
+    \end{enumerate}
+
+
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{../figures/etl_pipeline.png}
+        \caption{Terminal output after running the ETL pipeline with main.py}
+        \label{fig:etl_pipeline}
+    \end{figure}
 
     \section{Genealogical Queries \& Results}
+    Here are the SQL queries designed to answer specific genealogical questions based on our database schema, along with their results.
+
     \subsubsection*{1. The number of communes per department}
     \begin{verbatim}
     SELECT dept_code, COUNT(*) AS total_town
@@ -234,6 +278,21 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
     JOIN town ON act.town_id = town.id
     WHERE town.name ~* '^LUÇON$';
     \end{verbatim}
+
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \includegraphics[width=\textwidth]{../figures/query1_result.png}
+            \caption{Result for Query 1}
+            \label{fig:query1_result}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \includegraphics[width=\textwidth]{../figures/query2_result.png}
+            \caption{Result for Query 2}
+            \label{fig:query2_result}
+        \end{subfigure}
+    \end{figure}
 
     \subsubsection*{3. The number of marriage contracts before 1855}
     \begin{verbatim}
@@ -254,11 +313,42 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
     LIMIT 1;
     \end{verbatim}
 
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.48\textwidth}
+            \includegraphics[width=\textwidth]{../figures/query3_result.png}
+            \caption{Result for Query 3}
+            \label{fig:query3_result}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.48\textwidth}
+            \includegraphics[width=\textwidth]{../figures/query4_result.png}
+            \caption{Result for Query 4}
+            \label{fig:query4_result}
+        \end{subfigure}
+    \end{figure}
+
     \subsubsection*{5. The date of the first and last records}
     \begin{verbatim}
     SELECT MIN(act_date) as first_act, MAX(act_date) as last_act
     FROM act;
     \end{verbatim}
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\textwidth]{../figures/query5_result.png}
+        \caption{Result for Query 5}
+        \label{fig:query5_result}
+    \end{figure}
+
+    \subsection*{Summary of All Query Results}
+    The following image shows the combined results of all queries executed through the Python script.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{../figures/all_queries_result.png}
+        \caption{Summary of All Query Results from Python Script}
+        \label{fig:all_queries_result}
+    \end{figure}
 
 
     \section{Bonus: Scalability \& Noisy Data}
