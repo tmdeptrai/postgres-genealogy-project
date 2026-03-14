@@ -9,6 +9,9 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool
 
+# from utils.data_parser import parse_mariages
+from utils.data_parser_better import parse_mariages
+
 INT32_MIN = -2_147_483_648
 INT32_MAX =  2_147_483_647
 
@@ -211,12 +214,11 @@ def main():
     parser.add_argument("--csv", default="raw_data/mariages_L3_5k.csv", help="Path to the input CSV")
     parser.add_argument("--truncate", action="store_true", help="Clear all tables before loading")
     parser.add_argument("--chunk-size", type=int, default=5000, help="Batch size for INSERT statements")
+    parser.add_argument("--parser-chunk-size", type=int, default=10000, help="Chunk size for reading the CSV with the parser")
     args = parser.parse_args()
 
-    from utils.data_parser import parse_mariages
-
     csv_path = str(Path(args.csv))
-    tables = parse_mariages(csv_path=csv_path)
+    tables = parse_mariages(csv_path=csv_path, chunk_size=args.parser_chunk_size)
     engine = get_engine()
     load_tables(engine, tables, truncate=args.truncate, chunk_size=args.chunk_size)
     print("Loaded data into PostgreSQL.")

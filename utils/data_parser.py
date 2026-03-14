@@ -131,6 +131,7 @@ def parse_mariages(
     csv_path: str = "../raw_data/mariages_L3_5k.csv",
     sep: str = ",",
     encoding: str = "utf-8",
+    chunk_size = None,
 ) -> dict[str, pd.DataFrame]:
     """
     Parse the civil registry CSV(No header row is expected.)
