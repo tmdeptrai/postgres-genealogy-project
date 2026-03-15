@@ -50,6 +50,16 @@ CSV_COLUMNS = [
 
 VALID_DEPT_CODES = {"44", "49", "79", "85"}
 
+VALID_ACT_TYPES = {
+    "Certificat de mariage",
+    "Contrat de mariage",
+    "Divorce",
+    "Mariage",
+    "Promesse de mariage - fiançailles",
+    "Publication de mariage",
+    "Rectification de mariage",
+}
+
 
 def _clean(val) -> str | None:
     """
@@ -253,6 +263,10 @@ def parse_mariages(
 
         # ── Act type ────────────────────────────────────────────────────────
         act_type = _clean(row["act_type"]) or ""
+        if act_type not in VALID_ACT_TYPES:
+            print(f"  ⚠ Row {row['id']}: unrecognized act_type '{act_type}' — skipped")
+            skipped += 1
+            continue
 
         # ── Date (DD/MM/YYYY) ───────────────────────────────────────────────
         date_raw = _clean(row["act_date"])

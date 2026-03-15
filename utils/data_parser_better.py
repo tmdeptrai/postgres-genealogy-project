@@ -30,6 +30,16 @@ CSV_COLUMNS = [
 
 VALID_DEPT_CODES = {"44", "49", "79", "85"}
 
+VALID_ACT_TYPES = {
+    "Certificat de mariage",
+    "Contrat de mariage",
+    "Divorce",
+    "Mariage",
+    "Promesse de mariage - fiançailles",
+    "Publication de mariage",
+    "Rectification de mariage",
+}
+
 
 def _clean(val) -> str | None:
     """
@@ -43,7 +53,9 @@ def _clean(val) -> str | None:
     s = str(val).strip()
     return None if s.lower() in ("n/a", "", "nan") else s
 
+
 # ==== NEW: FLEXIBLE DATE FORMAT HANDLING =========
+
 
 def _parse_date_flexible(date_str: str) -> pd.Timestamp | None:
     """
@@ -54,13 +66,13 @@ def _parse_date_flexible(date_str: str) -> pd.Timestamp | None:
         return None
 
     original_date_str = date_str
-    
+
     # Handle date ranges by taking the first year
-    if '-' in date_str:
-        date_str = date_str.split('-')[0].strip()
+    if "-" in date_str:
+        date_str = date_str.split("-")[0].strip()
 
     # Clean non-numeric characters from date parts
-    parts = date_str.split('/')
+    parts = date_str.split("/")
     cleaned_parts = []
     for part in parts:
         cleaned_parts.append("".join(filter(str.isdigit, part)))
@@ -77,27 +89,31 @@ def _parse_date_flexible(date_str: str) -> pd.Timestamp | None:
         date_str = f"{day}/{month}/{year}"
 
     # Try common formats first (DD/MM/YYYY, YYYY-MM-DD, etc.)
-    parsed_date = pd.to_datetime(date_str, dayfirst=True, errors='coerce')
+    parsed_date = pd.to_datetime(date_str, dayfirst=True, errors="coerce")
 
     # If still NaT, try general inference
     if pd.isna(parsed_date):
-        parsed_date = pd.to_datetime(date_str, errors='coerce')
+        parsed_date = pd.to_datetime(date_str, errors="coerce")
 
     # If still NaT, try to infer year-only or month-year, assuming default day 1
     if pd.isna(parsed_date):
         try:
             # For 'YYYY' -> '01/01/YYYY'
             if len(date_str) == 4 and date_str.isdigit():
-                parsed_date = pd.to_datetime(f"01/01/{date_str}", dayfirst=True, errors='coerce')
+                parsed_date = pd.to_datetime(
+                    f"01/01/{date_str}", dayfirst=True, errors="coerce"
+                )
             # For 'MM/YYYY'
             elif len(cleaned_parts) == 2:
                 month, year = cleaned_parts
                 if month == "00":
                     month = "01"
-                parsed_date = pd.to_datetime(f"01/{month}/{year}", dayfirst=True, errors='coerce')
+                parsed_date = pd.to_datetime(
+                    f"01/{month}/{year}", dayfirst=True, errors="coerce"
+                )
 
         except Exception:
-            pass # Keep parsed_date as NaT if this fails too
+            pass  # Keep parsed_date as NaT if this fails too
 
     if pd.isna(parsed_date):
         return None
@@ -162,7 +178,7 @@ def parse_mariages(
     Parse the civil registry CSV into normalized DataFrames, processing
     the file in chunks to handle large datasets efficiently.
     """
-    
+
     dept_set: set = set()
     town_rows: list = []
     town_index: dict = {}
@@ -260,6 +276,12 @@ def parse_mariages(
 
             # ── Act type ────────────────────────────────────────────────────────
             act_type = _clean(row["act_type"]) or ""
+            if act_type not in VALID_ACT_TYPES:
+                print(
+                    f"  ⚠ Row {row['id']}: unrecognized act_type '{act_type}' — skipped"
+                )
+                skipped += 1
+                continue
 
             # ── Date (DD/MM/YYYY) ───────────────────────────────────────────────
             date_raw = _clean(row["act_date"])
