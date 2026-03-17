@@ -37,7 +37,7 @@
 \subsectionfont{\color{blue}\fontsize{13pt}{15pt}\selectfont}
 
 \setstretch{1.15}
-\usetikzlibrary{positioning, arrows.meta, calc}
+\usetikzlibrary{positioning, arrows.meta, calc, shapes.geometric, arrows}
 
 \usepackage{fancyhdr}
 \pagestyle{fancy}
@@ -213,6 +213,44 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
 
     To get our data from the messy CSV file into our clean database, we created a two-step process using Python scripts. The first script, \texttt{utils/data\_parser.py}, handles the cleaning and organizing, and the second script, \texttt{main.py}, loads it into the database.
 
+    % \begin{figure}[H]
+    %     \centering
+    %     \begin{tikzpicture}[node distance=2cm, auto, thick]
+    %         % Define styles
+    %         \tikzstyle{source} = [ellipse, draw, fill=blue!10, text width=3.5cm, align=center]
+    %         \tikzstyle{process} = [rectangle, draw, fill=orange!10, text width=3.5cm, align=center, minimum height=1.5cm]
+    %         \tikzstyle{table} = [cylinder, shape border rotate=90, draw, fill=green!10, text width=2cm, align=center]
+    %         \tikzstyle{database} = [cylinder, shape border rotate=90, draw, fill=purple!20, text width=3cm, align=center, minimum height=1.5cm]
+    %         \tikzstyle{arrow} = [->, >=stealth]
+
+    %         % Place nodes
+    %         \node[source] (csv) {Raw Data\\(\texttt{mariages.csv})};
+    %         \node[process, below=of csv] (script) {ETL Script\\(\texttt{main.py} + \texttt{data\_parser.py})};
+            
+    %         % Position the four tables below the script
+    %         \node[table, below left=1.5cm and -1.5cm of script] (dept) {Department};
+    %         \node[table, right=of dept] (town) {Town};
+    %         \node[table, right=of town] (person) {Person};
+    %         \node[table, right=of person] (act) {Act};
+
+    %         \node[database, below=of town] (postgres) {PostgreSQL Database};
+
+    %         % Draw arrows
+    %         \draw[arrow] (csv) -- (script);
+    %         \draw[arrow] (script) -- (dept);
+    %         \draw[arrow] (script) -- (town);
+    %         \draw[arrow] (script) -- (person);
+    %         \draw[arrow] (script) -- (act);
+            
+    %         \draw[arrow] (dept) -- (postgres);
+    %         \draw[arrow] (town) -- (postgres);
+    %         \draw[arrow] (person) -- (postgres);
+    %         \draw[arrow] (act) -- (postgres);
+    %     \end{tikzpicture}
+    %     \caption{Overview of the ETL Process}
+    %     \label{fig:etl_process}
+    % \end{figure}
+
     \subsection{Extraction}
     First, we pull all the data from the \texttt{mariages\_L3\_5k.csv} file. We used the pandas library in Python to help with this. An important step was to read everything as text first, so we didn't accidentally change data, like dropping the '0' from a department code like '05'. We also made sure to use UTF-8 encoding, which helps read special French characters correctly.
 
@@ -376,7 +414,7 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\textwidth]{../figures/problem2-inconsistent-date.png}
+        \includegraphics[width=0.7\textwidth]{../figures/problem2-inconsistent-date.png}
         \caption{Inconsistent Date Formats}
         \label{fig:problem2-date-formatting}
     \end{figure}
@@ -399,32 +437,76 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
     After cleaning and loading the larger dataset, we re-ran our five queries. The results, shown below, provide a much more comprehensive view of the genealogical data.
 
     % You can create a simple table here to compare the results
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{../figures/all_queries_result_bonus.png}
+        \caption{Query results for the 564k dataset}
+        \label{fig:bonus_results}
+    \end{figure}
+
     \begin{table}[H]
         \centering
-        \caption{Comparison of Query Results}
-        \begin{tabular}{@{}lrr@{}}
+        \caption{Comparison of Query Performance}
+        \begin{tabular}{@{}lcc@{}}
             \toprule
-            \textbf{Query}                 & \textbf{Result (5k Dataset)} & \textbf{Result (564k Dataset)} \\
+            \textbf{Query} & \textbf{Time (ms) - 5k Dataset} & \textbf{Time (ms) - 564k Dataset} \\
             \midrule
-            1. Communes per department     & (Value)                      & (Value)                        \\
-            2. Acts in Luçon               & (Value)                      & (Value)                        \\
-            3. Contracts before 1855       & (Value)                      & (Value)                        \\
-            4. Town with most publications & (Value)                      & (Value)                        \\
-            5. First and last act dates    & (Value)                      & (Value)                        \\
+            1. Communes per dept.     & 0.116 & 0.057 \\
+            2. Acts in Luçon               & 0.834 & 98.566 \\
+            3. Contracts before 1855       & 0.362 & 47.105 \\
+            4. Town with most pubs. & 0.461 & 47.565 \\
+            5. First and last act dates    & 0.718 & 94.011 \\
             \bottomrule
         \end{tabular}
-        \label{tab:results_comparison}
-    \end{table}
-
-    The comparison shows that... [Here, you can add a short analysis, for example: "the larger dataset gives us a much wider date range and reveals different patterns in marriage locations..."]
+        \label{tab:performance_comparison}
+    \end{table}    The performance comparison clearly shows that our database design scales effectively. While the 564k dataset is over 100 times larger than the original, the queries run in milliseconds and are still very fast. The most time-consuming queries are those that need to scan the large `act` table, but even these complete in under 100ms. This demonstrates that our normalized schema and the automatic indexing provided by PostgreSQL are efficient for handling a significantly larger data load.
 
     \section{Conclusion}
 
-    This project successfully met the goal of designing and implementing a relational database for French genealogical records. Starting from a single, flat CSV file, we designed a normalized schema in Third Normal Form (3NF) to ensure data integrity and minimize redundancy. Our final design consisted of four interconnected tables: \texttt{department}, \texttt{town}, \texttt{person}, and \texttt{act}.
+This project successfully met the goal of designing and implementing a relational database for French genealogical records. Starting from a single, flat CSV file, we designed a normalized schema in Third Normal Form (3NF) to ensure data integrity and minimize redundancy. Our final design consisted of four interconnected tables: \texttt{department}, \texttt{town}, \texttt{person}, and \texttt{act}.
 
-    A key part of our work was developing a robust ETL (Extract, Transform, Load) pipeline using Python. This pipeline not only cleaned and validated the initial 5,000 records but was also designed to be scalable. As demonstrated in the bonus section, our system is capable of handling a much larger, "noisy" dataset of over 500,000 records with only minor adjustments to handle performance and data inconsistencies.
+A key part of our work was developing a robust ETL (Extract, Transform, Load) pipeline using Python. This pipeline not only cleaned and validated the initial 5,000 records but was also designed to be scalable. As demonstrated in the bonus section, our system is capable of handling a much larger, "noisy" dataset of over 500,000 records with only minor adjustments to handle performance and data inconsistencies.
 
-    We proved the effectiveness of our database by running a series of genealogical queries, successfully extracting meaningful information such as marriage statistics and location-based data. Overall, this project provided practical experience in database modeling, data normalization, and building an automated pipeline to handle real-world data challenges.
+We proved the effectiveness of our database by running a series of genealogical queries, successfully extracting meaningful information such as marriage statistics and location-based data. Overall, this project provided practical experience in database modeling, data normalization, and building an automated pipeline to handle real-world data challenges.
+
+\appendix
+\section*{Appendix: Query Performance Analysis}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../figures/explain_query1.png}
+    \caption{EXPLAIN ANALYZE for Query 1 on the 564k Datasets}
+    \label{fig:explain1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../figures/explain_query2.png}
+    \caption{EXPLAIN ANALYZE for Query 2 on the 564k Datasets}
+    \label{fig:explain2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../figures/explain_query3.png}
+    \caption{EXPLAIN ANALYZE for Query 3 on the 564k Datasets}
+    \label{fig:explain3}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../figures/explain_query4.png}
+    \caption{EXPLAIN ANALYZE for Query 4 on the 564k Datasets}
+    \label{fig:explain4}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../figures/explain_query5.png}
+    \caption{EXPLAIN ANALYZE for Query 5 on the 564k Datasets}
+    \label{fig:explain5}
+\end{figure}
 
 \end{CJK*}
 \end{document}
