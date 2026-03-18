@@ -198,7 +198,7 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
     % Insert the visual export from DBDesigner
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\textwidth]{../design/db_schema.png}
+        \includegraphics[width=0.8\textwidth]{../design/db_schema.png}
         \caption{Database Relation Schema}
         \label{fig:schema}
     \end{figure}
@@ -213,43 +213,12 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
 
     To get our data from the messy CSV file into our clean database, we created a two-step process using Python scripts. The first script, \texttt{utils/data\_parser.py}, handles the cleaning and organizing, and the second script, \texttt{main.py}, loads it into the database.
 
-    % \begin{figure}[H]
-    %     \centering
-    %     \begin{tikzpicture}[node distance=2cm, auto, thick]
-    %         % Define styles
-    %         \tikzstyle{source} = [ellipse, draw, fill=blue!10, text width=3.5cm, align=center]
-    %         \tikzstyle{process} = [rectangle, draw, fill=orange!10, text width=3.5cm, align=center, minimum height=1.5cm]
-    %         \tikzstyle{table} = [cylinder, shape border rotate=90, draw, fill=green!10, text width=2cm, align=center]
-    %         \tikzstyle{database} = [cylinder, shape border rotate=90, draw, fill=purple!20, text width=3cm, align=center, minimum height=1.5cm]
-    %         \tikzstyle{arrow} = [->, >=stealth]
-
-    %         % Place nodes
-    %         \node[source] (csv) {Raw Data\\(\texttt{mariages.csv})};
-    %         \node[process, below=of csv] (script) {ETL Script\\(\texttt{main.py} + \texttt{data\_parser.py})};
-            
-    %         % Position the four tables below the script
-    %         \node[table, below left=1.5cm and -1.5cm of script] (dept) {Department};
-    %         \node[table, right=of dept] (town) {Town};
-    %         \node[table, right=of town] (person) {Person};
-    %         \node[table, right=of person] (act) {Act};
-
-    %         \node[database, below=of town] (postgres) {PostgreSQL Database};
-
-    %         % Draw arrows
-    %         \draw[arrow] (csv) -- (script);
-    %         \draw[arrow] (script) -- (dept);
-    %         \draw[arrow] (script) -- (town);
-    %         \draw[arrow] (script) -- (person);
-    %         \draw[arrow] (script) -- (act);
-            
-    %         \draw[arrow] (dept) -- (postgres);
-    %         \draw[arrow] (town) -- (postgres);
-    %         \draw[arrow] (person) -- (postgres);
-    %         \draw[arrow] (act) -- (postgres);
-    %     \end{tikzpicture}
-    %     \caption{Overview of the ETL Process}
-    %     \label{fig:etl_process}
-    % \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{../figures/etl_pipeline_diagram.png}
+        \caption{Overview of the ETL Process}
+        \label{fig:etl_process}
+    \end{figure}
 
     \subsection{Extraction}
     First, we pull all the data from the \texttt{mariages\_L3\_5k.csv} file. We used the pandas library in Python to help with this. An important step was to read everything as text first, so we didn't accidentally change data, like dropping the '0' from a department code like '05'. We also made sure to use UTF-8 encoding, which helps read special French characters correctly.
@@ -414,7 +383,7 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.7\textwidth]{../figures/problem2-inconsistent-date.png}
+        \includegraphics[width=0.6\textwidth]{../figures/problem2-inconsistent-date.png}
         \caption{Inconsistent Date Formats}
         \label{fig:problem2-date-formatting}
     \end{figure}
@@ -469,6 +438,7 @@ A key part of our work was developing a robust ETL (Extract, Transform, Load) pi
 
 We proved the effectiveness of our database by running a series of genealogical queries, successfully extracting meaningful information such as marriage statistics and location-based data. Overall, this project provided practical experience in database modeling, data normalization, and building an automated pipeline to handle real-world data challenges.
 
+\newpage
 \appendix
 \section*{Appendix: Query Performance Analysis}
 
