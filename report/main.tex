@@ -255,7 +255,6 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
         \item \textbf{Final Check:} Before loading, the script does one last check on our cleaned data tables to make sure all the ID numbers are valid integers and that no essential information is missing.
         \item \textbf{Order of Operations:} It loads the tables in the correct order: first \texttt{department}, then \texttt{town} (which needs departments to exist), then \texttt{person}, and finally \texttt{act} (which needs towns and people).
         \item \textbf{Handling People:} The \texttt{person} table was a bit tricky because a person's parents are also in the same table. To solve this, we first insert all people with their parent fields empty. Then, once everyone is in the table, we go back and add the parent-child links.
-        \item \textbf{Batching:} To make it faster, the script inserts the data in large chunks (batches) instead of one row at a time.
         \item \textbf{Updating Sequences:} After inserting everything with specific IDs, we reset the database's automatic ID counters. This ensures that if we add new data later, we won't have any ID conflicts.
     \end{enumerate}
 
@@ -379,7 +378,7 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
     \textbf{Solution:} We modified our script to read the CSV in smaller chunks. This meant the program processed the file piece by piece instead of all at once, which significantly improved performance and reduced memory usage.
 
     \subsubsection{Problem 2: Inconsistent Date Formats}
-    \textbf{Issue:} The script failed on many rows because the dates were not in the expected \texttt{DD/MM/YYYY} format. We found formats that contained only the year of the event like \texttt{\'00/00/1731\'}, or were missing specific day or month information like \texttt{\'00/07/1691\'}. These incomplete dates could not be directly parsed.
+    \textbf{Issue:} The script failed on many rows because the dates were not in the expected \texttt{DD/MM/YYYY} format. We found formats that contained only the year of the event like \texttt{00/00/1731}, or were missing specific day or month information like \texttt{00/07/1691}. These incomplete dates could not be directly parsed.
 
     \begin{figure}[H]
         \centering
@@ -391,7 +390,7 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
     \textbf{Solution:} We improved our date-parsing logic to be more flexible. We used a date-parsing library that can intelligently guess common date formats and added more robust \texttt{try-except} blocks to handle and log the formats we couldn\'t automatically convert, rather than crashing the script. For incomplete dates, we decided to store them as `NULL` in the database to preserve the record while acknowledging the missing information.
 
     \subsubsection{Problem 3: Missing Department Codes}
-    \textbf{Issue:} Many rows in the larger dataset had empty or unspecified department codes in the source data. After our initial cleaning, these appeared as \texttt{\'None\'} (e.g., \texttt{Row 5755: unknown dept\_code None — skipped}). Our database schema requires a \texttt{town} to be linked to a \texttt{department}, so records without a department code could not be processed.
+    \textbf{Issue:} Many rows in the larger dataset had empty or unspecified department codes in the source data. After our initial cleaning, these appeared as \texttt{None} (e.g., \texttt{Row 5755: unknown dept\_code None — skipped}). Our database schema requires a \texttt{town} to be linked to a \texttt{department}, so records without a department code could not be processed.
 
     \begin{figure}[H]
         \centering
@@ -400,7 +399,7 @@ Dept_Code → (Valid_Codes: 44, 49, 79, 85)
         \label{fig:problem3-none-dept-code}
         \end{figure}
 
-    \textbf{Solution:} We chose to filter out and log any records where the \texttt{dept\_code} was missing (i.e., \texttt{\'None\'}). This ensures that all data loaded into our \texttt{town} table correctly references an existing \texttt{department}, maintaining data integrity in accordance with our schema.
+    \textbf{Solution:} We chose to filter out and log any records where the \texttt{dept\_code} was missing (i.e., \texttt{None}). This ensures that all data loaded into our \texttt{town} table correctly references an existing \texttt{department}, maintaining data integrity in accordance with our schema.
 
     \subsection{Performance Comparison: 5k vs. 564k Datasets}
     After cleaning and loading the larger dataset, we re-ran our five queries. The results, shown below, provide a much more comprehensive view of the genealogical data.
